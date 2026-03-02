@@ -697,17 +697,17 @@
     <script src="https://kit.fontawesome.com/yourcode.js" crossorigin="anonymous"></script>
     <script>
         // ==================== НАСТРОЙКИ РЕПОЗИТОРИЯ ====================
-        const GITHUB_USERNAME = 'ShizzyBoostFunPay';      // замените на свой логин
-        const GITHUB_REPO = 'FarmMT';              // замените на название репозитория
-        const GITHUB_FILE_PATH = 'data.json';          // путь к файлу с данными
-        const GITHUB_BRANCH = 'main';                  // ветка
+        const GITHUB_USERNAME = 'ShizzyBoostFunPay';      // ваш логин
+        const GITHUB_REPO = 'FarmMT';                     // название репозитория
+        const GITHUB_FILE_PATH = 'data.json';              // путь к файлу с данными
+        const GITHUB_BRANCH = 'main';                      // ветка
 
         // ==================== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ====================
         let battles = [];
         let filteredBattles = [];
-        let isAdmin = false;               // флаг администратора
-        let currentFileSha = null;          // SHA текущего файла (нужен для обновления)
-        let githubToken = '';               // токен будет введён администратором
+        let isAdmin = false;
+        let currentFileSha = null;
+        let githubToken = '';
 
         // Элементы
         const adminOnlyElements = document.querySelectorAll('.admin-only');
@@ -719,7 +719,8 @@
         // ==================== ЗАГРУЗКА ДАННЫХ ИЗ GITHUB ====================
         async function loadDataFromGitHub() {
             try {
-                const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}?ref=${GITHUB_BRANCH}`;
+                // Добавляем параметр _=${Date.now()} для предотвращения кеширования
+                const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}?ref=${GITHUB_BRANCH}&_=${Date.now()}`;
                 const response = await fetch(url);
                 if (!response.ok) {
                     if (response.status === 404) {
@@ -731,14 +732,19 @@
                 } else {
                     const data = await response.json();
                     currentFileSha = data.sha;
-                    const content = atob(data.content);
+                    // Правильное преобразование base64 в UTF-8
+                    const binary = atob(data.content);
+                    const bytes = new Uint8Array(binary.length);
+                    for (let i = 0; i < binary.length; i++) {
+                        bytes[i] = binary.charCodeAt(i);
+                    }
+                    const content = new TextDecoder("utf-8").decode(bytes);
                     battles = JSON.parse(content);
                 }
-                // Нормализуем данные (добавляем timestamp и mode, если нет)
                 battles = battles.map(b => ({
-                    id: b.id || Date.now() + Math.random(), // на всякий случай, если старые данные без id
+                    id: b.id || Date.now() + Math.random(),
                     tank: b.tank || 'Неизвестно',
-                    mode: b.mode || 'Стандартный бой', // значение по умолчанию
+                    mode: b.mode || 'Стандартный бой',
                     profit: b.profit || 0,
                     result: b.result || 'Победа',
                     date: b.date || new Date().toISOString().split('T')[0],
@@ -753,22 +759,40 @@
         }
 
         // ==================== СОХРАНЕНИЕ ДАННЫХ В GITHUB ====================
-           async function saveDataToGitHub() {
+        async function saveDataToGitHub() {
             if (!githubToken) {
                 showToast('Ошибка', 'Введите токен GitHub в панели администратора', 'error');
                 return false;
             }
 
             try {
+                // 1. Получаем актуальный SHA файла
+                const fileUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}?ref=${GITHUB_BRANCH}`;
+                let sha = null;
+                const fileResponse = await fetch(fileUrl, {
+                    headers: { 'Authorization': `token ${githubToken}` }
+                });
+
+                if (fileResponse.ok) {
+                    const fileData = await fileResponse.json();
+                    sha = fileData.sha;
+                } else if (fileResponse.status !== 404) {
+                    const err = await fileResponse.json();
+                    throw new Error(err.message || 'Ошибка получения информации о файле');
+                }
+
+                // 2. Подготавливаем контент в base64 (правильно для UTF-8)
                 const content = btoa(unescape(encodeURIComponent(JSON.stringify(battles, null, 2))));
+
+                // 3. Отправляем запрос на сохранение
                 const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
                 const body = {
                     message: 'Обновление данных через API',
                     content: content,
                     branch: GITHUB_BRANCH
                 };
-                if (currentFileSha) {
-                    body.sha = currentFileSha;
+                if (sha) {
+                    body.sha = sha;
                 }
 
                 const response = await fetch(url, {
@@ -840,7 +864,6 @@
                 showToast("Доступ запрещён", "Только администратор может добавлять записи", "error");
                 return;
             }
-
             if (!getToken()) return;
 
             const tank = document.getElementById('tankSelect').value;
