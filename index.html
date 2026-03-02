@@ -842,8 +842,8 @@
 
         // ==================== АУТЕНТИФИКАЦИЯ ====================
         adminLoginBtn.onclick = function() {
-            const pwd = prompt("Введите пароль администратора (не токен!):");
-            if (pwd === "admin123") { // при необходимости смените пароль
+            const pwd = prompt("Введите пароль администратора:");
+            if (pwd === "Krasav41k!") { // при необходимости смените пароль
                 isAdmin = true;
                 adminLoginBtn.classList.add('hidden');
                 adminLogoutBtn.classList.remove('hidden');
