@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>FUTURE OF FULFILLMENT</title>
+  <!-- Современный шрифт -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Inter', sans-serif;
+      background-color: #0b0b0b; /* fallback */
+    }
+
+    /* Полноэкранное видео */
+    .video-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -2;
+      pointer-events: none;
+    }
+
+    /* Затемняющий оверлей для лучшей читаемости */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.45);
+      background: linear-gradient(145deg, rgba(0,0,0,0.5) 0%, rgba(20,20,30,0.3) 100%);
+      backdrop-filter: blur(1.5px);
+      z-index: -1;
+    }
+
+    /* Контент по центру */
+    .content {
+      position: relative;
+      z-index: 10;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+      color: white;
+      text-shadow: 0 4px 30px rgba(0,0,0,0.5);
+    }
+
+    /* Анимированный вход заголовка */
+    .headline {
+      font-size: clamp(3rem, 15vw, 6.5rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      margin-bottom: 1.2rem;
+      animation: fadeUp 1.2s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+      opacity: 0;
+      transform: translateY(30px);
+      text-transform: uppercase;
+      background: linear-gradient(to right, #fff, #e0e7ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 30px rgba(0,160,255,0.3);
+    }
+
+    .subhead {
+      font-size: clamp(1rem, 4vw, 1.5rem);
+      font-weight: 300;
+      letter-spacing: 0.3em;
+      margin-bottom: 2.8rem;
+      animation: fadeUp 1.2s 0.2s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+      opacity: 0;
+      transform: translateY(30px);
+      color: rgba(255,255,255,0.85);
+      backdrop-filter: blur(8px);
+      padding: 0.3rem 1.8rem;
+      border-radius: 60px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.08);
+      display: inline-block;
+    }
+
+    /* Кнопка с неон-эффектом */
+    .btn {
+      display: inline-block;
+      padding: 1rem 3rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: white;
+      background: transparent;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-radius: 60px;
+      backdrop-filter: blur(12px);
+      background: rgba(10, 20, 40, 0.25);
+      box-shadow: 0 0 25px rgba(0, 160, 255, 0.2);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.35s ease;
+      animation: fadeUp 1.2s 0.4s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    .btn:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.9);
+      box-shadow: 0 0 40px rgba(70, 180, 255, 0.6);
+      transform: scale(1.02) translateY(-3px);
+      letter-spacing: 0.15em;
+    }
+
+    /* Декоративная линия снизу */
+    .footer-note {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 0.75rem;
+      font-weight: 300;
+      letter-spacing: 0.4em;
+      color: rgba(255,255,255,0.5);
+      z-index: 20;
+      animation: fadeUp 1.5s 0.8s forwards;
+      opacity: 0;
+    }
+
+    /* Индикатор громкости / mute (опционально) */
+    .sound-hint {
+      position: absolute;
+      bottom: 2rem;
+      right: 2rem;
+      z-index: 30;
+      color: rgba(255,255,255,0.3);
+      font-size: 0.8rem;
+      backdrop-filter: blur(5px);
+      padding: 0.4rem 1rem;
+      border-radius: 40px;
+      background: rgba(0,0,0,0.1);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    @keyframes fadeUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Для мобильных — корректировка */
+    @media (max-width: 600px) {
+      .btn {
+        padding: 0.9rem 2rem;
+        font-size: 0.9rem;
+      }
+      .subhead {
+        letter-spacing: 0.2em;
+        padding: 0.2rem 1rem;
+      }
+    }
+
+    /* Стилизация на случай, если видео не загрузится — показываем фон */
+    .fallback-bg {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ВИДЕО ИЗ ПАПКИ mp4 -->
+  <!-- Предполагается, что видео называется background.mp4 и лежит в папке mp4 рядом с index.html -->
+  <video class="video-bg" autoplay muted loop playsinline preload="auto">
+    <source src="mp4/background" type="video/mp4">
+    <!-- Если браузер не поддерживает видео, показываем просто тёмный фон -->
+    Ваш браузер не поддерживает видео.
+  </video>
+
+  <!-- Затемнение для текста -->
+  <div class="overlay"></div>
+
+  <!-- Основной контент -->
+  <div class="content">
+    <h1 class="headline">FUTURE OF<br>FULFILLMENT</h1>
+    <div class="subhead">IS HERE</div>
+    <a href="#" class="btn">Explore →</a>
+  </div>
+
+  <div class="footer-note">SEAMLESS • AUTONOMOUS • INFINITE</div>
+  <div class="sound-hint">🔇 MUTED · 4K</div>
+
+  <!-- Небольшой скрипт для гарантии воспроизведения на мобильных (политика автовоспроизведения) -->
+  <script>
+    (function() {
+      const video = document.querySelector('.video-bg');
+      
+      // Попытка воспроизвести, если браузер приостановил
+      if (video) {
+        video.play().catch(e => {
+          console.log('Автовоспроизведение заблокировано, но muted обычно работает: ', e);
+        });
+      }
+
+      // Убираем звуковую подсказку, если видео не играет (но muted всегда играет)
+      // Для красоты добавим возможность кликнуть и включить звук? Оставим без звука по дизайну.
+      
+      // Дополнительно: можно показать кнопку unmute, но не требуется по ТЗ.
+      // Видео из папки mp4, путь корректный.
+    })();
+  </script>
+
+  <!-- 
+    ИНСТРУКЦИЯ ПО УСТАНОВКЕ:
+    1. Создайте папку "mp4" в той же директории, где лежит этот HTML-файл.
+    2. Поместите в папку mp4 ваше видео и назовите его "background.mp4"
+       (или измените src в теге source на своё имя файла).
+    3. Откройте index.html в браузере — видео будет на весь экран.
+  -->
+</body>
+</html>
