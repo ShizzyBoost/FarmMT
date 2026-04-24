@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Танковый учёт | ShizzyBoost</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #05050e;
+            --surface: rgba(18, 16, 34, 0.7);
+            --accent1: #a78bfa;
+            --accent2: #f472b6;
+            --gold: #ffd966;
+            --text: #e4e0f7;
+            --text-muted: #9b96bb;
+            --border: rgba(255, 255, 255, 0.06);
+            --success: #4caf7a;
+            --danger: #f56c6c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        /* Анимированный фон с сеткой и градиентами */
+        .bg-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .bg-glow1 {
+            position: absolute;
+            width: 70vw;
+            height: 70vw;
+            background: radial-gradient(circle, rgba(168, 130, 240, 0.12) 0%, transparent 70%);
+            top: -15%;
+            left: -15%;
+            animation: float1 12s ease-in-out infinite;
+        }
+        .bg-glow2 {
+            position: absolute;
+            width: 60vw;
+            height: 60vw;
+            background: radial-gradient(circle, rgba(244, 114, 182, 0.08) 0%, transparent 70%);
+            bottom: -10%;
+            right: -10%;
+            animation: float2 10s ease-in-out infinite;
+        }
+        .bg-grid {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse at 50% 50%, black 30%, transparent 70%);
+        }
+        @keyframes float1 {
+            0%, 100% { transform: translate(0, 0); }
+            33% { transform: translate(2%, -1%); }
+            66% { transform: translate(-1%, 2%); }
+        }
+        @keyframes float2 {
+            0%, 100% { transform: translate(0, 0); }
+            33% { transform: translate(-2%, -1%); }
+            66% { transform: translate(1%, 2%); }
+        }
+
+        .wrapper {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Шапка */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10, 8, 20, 0.75);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-bottom: 1px solid var(--border);
+            padding: 0.9rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .logo {
+            font-weight: 800;
+            font-size: 1.4rem;
+            background: linear-gradient(135deg, #c084fc, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+        .header-stats-row {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .stat-block {
+            text-align: center;
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(5px);
+            padding: 10px 18px;
+            border-radius: 1.5rem;
+            border: 1px solid var(--border);
+        }
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-bottom: 4px;
+        }
+        .stat-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--gold);
+        }
+        .btn {
+            padding: 0.7rem 1.8rem;
+            border-radius: 3rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            color: white;
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+        }
+        .btn-primary:hover {
+            box-shadow: 0 12px 30px rgba(236, 72, 153, 0.5);
+            transform: translateY(-2px);
+        }
+        .btn-outline {
+            border: 1px solid rgba(255,255,255,0.25);
+            color: #ddd;
+            background: transparent;
+        }
+        .btn-outline:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.5);
+            color: white;
+        }
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        .btn-danger:hover {
+            filter: brightness(1.1);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 2rem;
+            width: 100%;
+            flex: 1;
+        }
+
+        /* Панель управления и карточки */
+        .card {
+            background: var(--surface);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--border);
+            border-radius: 2rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .card h2 {
+            font-size: 1.6rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-left: 4px solid var(--accent1);
+            padding-left: 1rem;
+        }
+        .input-group {
+            margin-bottom: 1rem;
+        }
+        .input-label {
+            display: block;
+            margin-bottom: 0.4rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            color: var(--text);
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent1);
+            box-shadow: 0 0 0 3px rgba(168, 130, 240, 0.2);
+        }
+
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            align-items: flex-end;
+        }
+        .table-container {
+            background: var(--surface);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--border);
+            border-radius: 2rem;
+            padding: 1rem;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            text-align: left;
+            padding: 15px 10px;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-bottom: 1px solid var(--border);
+        }
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        tr:hover td {
+            background: rgba(168, 130, 240, 0.05);
+        }
+        .profit-positive {
+            color: var(--success);
+            font-weight: 600;
+        }
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+            transition: all 0.2s;
+        }
+        .action-btn:hover {
+            color: var(--accent1);
+            background: rgba(255,255,255,0.05);
+        }
+        .action-btn.delete:hover {
+            color: var(--danger);
+        }
+
+        .totals {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .total-card {
+            background: var(--surface);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--border);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .total-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gold);
+        }
+        .tanks-stats {
+            background: var(--surface);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--border);
+            border-radius: 2rem;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+        .tanks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .tank-stat-card {
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(5px);
+            border-radius: 1rem;
+            padding: 1.2rem;
+            border: 1px solid var(--border);
+        }
+
+        /* Модальные окна */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+        .modal.show {
+            display: flex;
+        }
+        .modal-content {
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 2rem;
+            max-width: 500px;
+            width: 90%;
+            padding: 2rem;
+            color: var(--text);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        .modal-close:hover {
+            color: var(--accent2);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="bg-layer">
+    <div class="bg-glow1"></div>
+    <div class="bg-glow2"></div>
+    <div class="bg-grid"></div>
+</div>
+<div class="wrapper">
+    <!-- Шапка -->
+    <header class="header">
+        <a href="#" class="logo"><i class="fas fa-tank"></i> Танковый учёт</a>
+        <div class="header-stats-row">
+            <div class="stat-block">
+                <div class="stat-label">Всего боёв</div>
+                <div class="stat-value" id="totalBattles">0</div>
+            </div>
+            <div class="stat-block">
+                <div class="stat-label">Заработано</div>
+                <div class="stat-value" id="totalSilver">0</div>
+            </div>
+            <div class="stat-block">
+                <div class="stat-label">Средний бой</div>
+                <div class="stat-value" id="averagePerBattle">0</div>
+            </div>
+            <button class="btn btn-outline" id="adminLoginBtn"><i class="fas fa-lock"></i> Вход админа</button>
+            <button class="btn btn-outline hidden" id="adminLogoutBtn"><i class="fas fa-unlock"></i> Выйти</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Панель администратора (скрыта) -->
+        <div class="card hidden" id="adminPanel">
+            <h2><i class="fas fa-plus-circle"></i> Добавить бой</h2>
+            <div class="input-group">
+                <label class="input-label"><i class="fas fa-key"></i> Токен GitHub</label>
+                <input type="password" class="form-control" id="githubToken" placeholder="Personal Access Token">
+                <small style="color: var(--text-muted);">Токен нужен для сохранения.</small>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <div class="input-group">
+                    <label class="input-label"><i class="fas fa-tank"></i> Танк</label>
+                    <select class="form-control" id="tankSelect">
+                        <option value="ИС-7">ИС-7 (X)</option>
+                        <option value="Объект 277">Объект 277 (X)</option>
+                        <option value="Т-62А">Т-62А (X)</option>
+                        <option value="Е100">E 100 (X)</option>
+                        <option value="Leopard 1">Leopard 1 (X)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label class="input-label"><i class="fas fa-gamepad"></i> Режим</label>
+                    <select class="form-control" id="modeSelect">
+                        <option value="Стандартный бой">Стандартный бой</option>
+                        <option value="Линия фронта">Линия фронта</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label class="input-label"><i class="fas fa-coins"></i> Заработано</label>
+                    <input type="number" class="form-control" id="profit" placeholder="Сумма">
+                </div>
+                <div class="input-group">
+                    <label class="input-label"><i class="fas fa-trophy"></i> Результат</label>
+                    <select class="form-control" id="result">
+                        <option value="Победа">Победа</option>
+                        <option value="Поражение">Поражение</option>
+                        <option value="Ничья">Ничья</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label class="input-label"><i class="fas fa-calendar"></i> Дата и время</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="date" class="form-control" id="battleDate">
+                        <input type="time" class="form-control" id="battleTime" value="12:00">
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 1rem; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="addBattle()"><i class="fas fa-plus"></i> Добавить</button>
+                <button class="btn btn-outline" onclick="resetForm()"><i class="fas fa-undo"></i> Очистить</button>
+            </div>
+        </div>
+
+        <!-- Фильтры -->
+        <div class="filters">
+            <select class="form-control" id="filterTank" onchange="applyFilters()" style="max-width: 200px;">
+                <option value="all">Все танки</option>
+            </select>
+            <select class="form-control" id="filterPeriod" onchange="applyFilters()" style="max-width: 180px;">
+                <option value="all">За всё время</option>
+                <option value="today">Сегодня</option>
+                <option value="week">Неделя</option>
+                <option value="month">Месяц</option>
+            </select>
+            <select class="form-control" id="sortBy" onchange="applyFilters()" style="max-width: 200px;">
+                <option value="date">По дате (новые)</option>
+                <option value="profit">По доходу</option>
+                <option value="tank">По танку</option>
+            </select>
+            <button class="btn btn-danger admin-only hidden" onclick="clearAllData()"><i class="fas fa-trash"></i> Очистить всё</button>
+        </div>
+
+        <!-- Таблица боёв -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Танк</th>
+                        <th>Режим</th>
+                        <th>Результат</th>
+                        <th>Заработано</th>
+                        <th class="admin-only hidden">Действия</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr><td colspan="6" style="text-align:center; color: var(--text-muted); padding:50px;">Загрузка...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Итоги -->
+        <div class="totals">
+            <div class="total-card"><div class="stat-label">Всего заработано</div><div class="total-value" id="totalSilverBottom">0</div></div>
+            <div class="total-card"><div class="stat-label">Количество боёв</div><div class="total-value" id="totalBattlesBottom">0</div></div>
+            <div class="total-card"><div class="stat-label">Средний доход</div><div class="total-value" id="averageBottom">0</div></div>
+            <div class="total-card"><div class="stat-label">Лучший бой</div><div class="total-value" id="bestBattle">0</div></div>
+        </div>
+
+        <!-- Статистика по танкам -->
+        <div class="tanks-stats">
+            <h2 style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-chart-bar"></i> Статистика по танкам</h2>
+            <div class="tanks-grid" id="tanksStats"></div>
+        </div>
+    </div>
+
+    <!-- Модальное окно редактирования -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Редактировать бой</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <input type="hidden" id="editId">
+            <div class="input-group"><label>Танк</label><input type="text" class="form-control" id="editTank"></div>
+            <div class="input-group"><label>Режим</label><select class="form-control" id="editMode"><option>Стандартный бой</option><option>Линия фронта</option></select></div>
+            <div class="input-group"><label>Заработано</label><input type="number" class="form-control" id="editProfit"></div>
+            <div class="input-group"><label>Результат</label><select class="form-control" id="editResult"><option>Победа</option><option>Поражение</option><option>Ничья</option></select></div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 1.5rem;">
+                <button class="btn btn-outline" onclick="closeModal()">Отмена</button>
+                <button class="btn btn-primary" onclick="saveEdit()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно пароля -->
+    <div class="modal" id="passwordModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Вход для администратора</h3>
+                <button class="modal-close" onclick="closePasswordModal()">&times;</button>
+            </div>
+            <div class="input-group">
+                <label>Пароль</label>
+                <input type="password" class="form-control" id="adminPassword" placeholder="Введите пароль" onkeypress="if(event.key==='Enter') checkPassword()">
+            </div>
+            <div id="passwordError" style="color: var(--danger); margin-top: 10px;"></div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 1.5rem;">
+                <button class="btn btn-outline" onclick="closePasswordModal()">Отмена</button>
+                <button class="btn btn-primary" onclick="checkPassword()">Войти</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" style="position:fixed; top:20px; right:20px; z-index:300;"></div>
+</div>
+
+<script>
+    // Все переменные и функции остались без изменений (см. исходный код)
+    const GITHUB_USERNAME = 'ShizzyBoostFunPay';
+    const GITHUB_REPO = 'FarmMT';
+    const GITHUB_FILE_PATH = 'data.json';
+    const GITHUB_BRANCH = 'main';
+    let battles = [], filteredBattles = [], isAdmin = false, currentFileSha = null, githubToken = '';
+    const adminOnlyElements = document.querySelectorAll('.admin-only');
+    const adminPanel = document.getElementById('adminPanel');
+    const adminLoginBtn = document.getElementById('adminLoginBtn');
+    const adminLogoutBtn = document.getElementById('adminLogoutBtn');
+    const tokenInput = document.getElementById('githubToken');
+    const passwordModal = document.getElementById('passwordModal');
+
+    window.openPasswordModal = () => { passwordModal.classList.add('show'); document.getElementById('adminPassword').focus(); };
+    window.closePasswordModal = () => passwordModal.classList.remove('show');
+    window.checkPassword = () => {
+        if (document.getElementById('adminPassword').value.trim() === "Krasav41k") {
+            isAdmin = true;
+            adminLoginBtn.classList.add('hidden'); adminLogoutBtn.classList.remove('hidden');
+            adminPanel.classList.remove('hidden'); adminOnlyElements.forEach(el => el.classList.remove('hidden'));
+            passwordModal.classList.remove('show');
+            updateAllStats();
+        } else {
+            document.getElementById('passwordError').textContent = "Неверный пароль";
+        }
+    };
+    adminLogoutBtn.onclick = () => { isAdmin = false; githubToken = ''; tokenInput.value = ''; adminLoginBtn.classList.remove('hidden'); adminLogoutBtn.classList.add('hidden'); adminPanel.classList.add('hidden'); adminOnlyElements.forEach(el => el.classList.add('hidden')); updateAllStats(); };
+    adminLoginBtn.onclick = openPasswordModal;
+
+    async function loadDataFromGitHub() {
+        try {
+            const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}?ref=${GITHUB_BRANCH}&_=${Date.now()}`;
+            const response = await fetch(url);
+            if (response.status === 404) { battles = []; currentFileSha = null; }
+            else {
+                const data = await response.json();
+                currentFileSha = data.sha;
+                battles = JSON.parse(atob(data.content)).map(b => ({...b, id: b.id || Date.now(), timestamp: b.timestamp || new Date(b.date + 'T' + (b.time || '12:00')).getTime() }));
+            }
+            updateAllStats();
+        } catch(e) { console.error(e); }
+    }
+
+    async function saveDataToGitHub() {
+        if (!githubToken) { showToast('Ошибка','Введите токен','error'); return false; }
+        try {
+            const fileUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}?ref=${GITHUB_BRANCH}`;
+            let sha = null;
+            const fr = await fetch(fileUrl, { headers: { Authorization: `token ${githubToken}` } });
+            if (fr.ok) sha = (await fr.json()).sha;
+            const content = btoa(unescape(encodeURIComponent(JSON.stringify(battles, null, 2))));
+            const body = { message: 'update', content, branch: GITHUB_BRANCH };
+            if (sha) body.sha = sha;
+            const res = await fetch(fileUrl, { method: 'PUT', headers: { Authorization: `token ${githubToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            if (!res.ok) throw new Error((await res.json()).message);
+            currentFileSha = (await res.json()).content.sha;
+            showToast('Успех','Сохранено','success');
+            return true;
+        } catch(e) { showToast('Ошибка',e.message,'error'); return false; }
+    }
+
+    window.addBattle = async function() {
+        if (!isAdmin) return;
+        githubToken = tokenInput.value.trim();
+        const battle = {
+            id: Date.now(),
+            tank: document.getElementById('tankSelect').value,
+            mode: document.getElementById('modeSelect').value,
+            profit: parseInt(document.getElementById('profit').value),
+            result: document.getElementById('result').value,
+            date: document.getElementById('battleDate').value,
+            time: document.getElementById('battleTime').value,
+            timestamp: new Date(document.getElementById('battleDate').value + 'T' + document.getElementById('battleTime').value).getTime()
+        };
+        if (!battle.tank || isNaN(battle.profit)) { showToast('Ошибка','Заполните поля','error'); return; }
+        battles.push(battle);
+        if (await saveDataToGitHub()) { resetForm(); updateAllStats(); } else battles.pop();
+    };
+
+    window.deleteBattle = async function(id) {
+        if (!isAdmin) return;
+        githubToken = tokenInput.value.trim();
+        const idx = battles.findIndex(b => b.id === id);
+        if (idx === -1) return;
+        const del = battles.splice(idx, 1)[0];
+        if (!await saveDataToGitHub()) { battles.splice(idx, 0, del); } else { updateAllStats(); }
+    };
+
+    window.editBattle = function(id) {
+        if (!isAdmin) return;
+        const b = battles.find(b => b.id === id);
+        if (!b) return;
+        document.getElementById('editId').value = b.id;
+        document.getElementById('editTank').value = b.tank;
+        document.getElementById('editMode').value = b.mode || 'Стандартный бой';
+        document.getElementById('editProfit').value = b.profit;
+        document.getElementById('editResult').value = b.result;
+        document.getElementById('editModal').classList.add('show');
+    };
+
+    window.saveEdit = async function() {
+        githubToken = tokenInput.value.trim();
+        const id = parseInt(document.getElementById('editId').value);
+        const idx = battles.findIndex(b => b.id === id);
+        if (idx === -1) return;
+        const original = {...battles[idx]};
+        battles[idx] = {...battles[idx], tank: document.getElementById('editTank').value, mode: document.getElementById('editMode').value, profit: parseInt(document.getElementById('editProfit').value), result: document.getElementById('editResult').value };
+        if (await saveDataToGitHub()) { closeModal(); updateAllStats(); } else battles[idx] = original;
+    };
+
+    window.closeModal = () => document.getElementById('editModal').classList.remove('show');
+    window.resetForm = () => {
+        document.getElementById('tankSelect').value = 'ИС-7';
+        document.getElementById('modeSelect').value = 'Стандартный бой';
+        document.getElementById('profit').value = '';
+        document.getElementById('result').value = 'Победа';
+        document.getElementById('battleDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('battleTime').value = '12:00';
+    };
+
+    window.clearAllData = async function() {
+        if (!isAdmin || !confirm('Удалить все данные?')) return;
+        githubToken = tokenInput.value.trim();
+        const old = [...battles];
+        battles = [];
+        if (!await saveDataToGitHub()) { battles = old; } else updateAllStats();
+    };
+
+    window.applyFilters = function() {
+        const tank = document.getElementById('filterTank').value;
+        const period = document.getElementById('filterPeriod').value;
+        const sort = document.getElementById('sortBy').value;
+        let filtered = [...battles];
+        if (tank !== 'all') filtered = filtered.filter(b => b.tank === tank);
+        const now = Date.now(), day = 86400000;
+        if (period === 'today') filtered = filtered.filter(b => b.timestamp >= now - (now % day));
+        else if (period === 'week') filtered = filtered.filter(b => b.timestamp >= now - 7*day);
+        else if (period === 'month') filtered = filtered.filter(b => b.timestamp >= now - 30*day);
+        if (sort === 'date') filtered.sort((a,b) => b.timestamp - a.timestamp);
+        else if (sort === 'profit') filtered.sort((a,b) => b.profit - a.profit);
+        else if (sort === 'tank') filtered.sort((a,b) => a.tank.localeCompare(b.tank));
+        filteredBattles = filtered;
+        renderTable();
+    };
+
+    function renderTable() {
+        const tbody = document.getElementById('tableBody');
+        if (!filteredBattles.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:50px;">Нет записей</td></tr>'; return; }
+        tbody.innerHTML = filteredBattles.map(b => `
+            <tr>
+                <td>${b.date} ${b.time||''}</td>
+                <td>${b.tank}</td>
+                <td>${b.mode||'Стандартный бой'}</td>
+                <td>${b.result}</td>
+                <td class="profit-positive">${b.profit} <i class="fas fa-coins" style="color:var(--gold);"></i></td>
+                ${isAdmin ? `<td class="actions"><button class="action-btn" onclick="editBattle(${b.id})"><i class="fas fa-edit"></i></button><button class="action-btn delete" onclick="deleteBattle(${b.id})"><i class="fas fa-trash"></i></button></td>` : ''}
+            </tr>
+        `).join('');
+    }
+
+    function updateAllStats() {
+        const total = battles.length;
+        const silver = battles.reduce((s,b) => s + b.profit, 0);
+        const avg = total ? Math.round(silver/total) : 0;
+        const best = total ? Math.max(...battles.map(b=>b.profit)) : 0;
+        document.getElementById('totalBattles').textContent = total;
+        document.getElementById('totalSilver').textContent = silver.toLocaleString();
+        document.getElementById('averagePerBattle').textContent = avg.toLocaleString();
+        document.getElementById('totalSilverBottom').textContent = silver.toLocaleString();
+        document.getElementById('totalBattlesBottom').textContent = total;
+        document.getElementById('averageBottom').textContent = avg.toLocaleString();
+        document.getElementById('bestBattle').textContent = best.toLocaleString();
+        updateTanksStats(); updateTankFilter(); applyFilters();
+    }
+
+    function updateTanksStats() {
+        const stats = {};
+        battles.forEach(b => {
+            if (!stats[b.tank]) stats[b.tank] = {count:0, total:0, wins:0};
+            stats[b.tank].count++; stats[b.tank].total += b.profit; if (b.result==='Победа') stats[b.tank].wins++;
+        });
+        document.getElementById('tanksStats').innerHTML = Object.entries(stats).sort((a,b)=>b[1].total-a[1].total).map(([t,s]) => `
+            <div class="tank-stat-card">
+                <div style="font-weight:600; color:var(--gold);">${t}</div>
+                <div>${s.count} боёв</div>
+                <div class="profit-positive">${s.total.toLocaleString()} <i class="fas fa-coins" style="color:var(--gold);"></i></div>
+                <div>Средний: ${Math.round(s.total/s.count).toLocaleString()}</div>
+                <div>Побед: ${Math.round(s.wins/s.count*100)}%</div>
+            </div>
+        `).join('');
+    }
+
+    function updateTankFilter() {
+        const tanks = [...new Set(battles.map(b=>b.tank))];
+        document.getElementById('filterTank').innerHTML = '<option value="all">Все танки</option>' + tanks.map(t=>`<option>${t}</option>`).join('');
+    }
+
+    function showToast(title, msg, type='info') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.style.cssText = `background:var(--surface); backdrop-filter:blur(10px); border:1px solid var(--border); border-left:4px solid ${type==='success'?'var(--success)':type==='error'?'var(--danger)':'var(--accent1)'}; border-radius:1rem; padding:1rem; margin-bottom:0.5rem; color:var(--text);`;
+        toast.innerHTML = `<strong>${title}</strong><br>${msg}`;
+        container.appendChild(toast);
+        setTimeout(()=>toast.remove(), 3000);
+    }
+
+    document.getElementById('battleDate').value = new Date().toISOString().split('T')[0];
+    loadDataFromGitHub();
+</script>
+</body>
+</html>
